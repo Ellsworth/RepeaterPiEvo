@@ -1,0 +1,16 @@
+[package]
+name = "repeaterpi_evo"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+influxdb = { version = "0.7.1", features = ["derive"] }
+chrono = {version = "0.4.31"}
+tokio = {version = "1.31.0", features = ["full"] }
+env_logger = "0.10.1"
+log = "0.4.20"
+config = { version = "0.13.3", features = ["ini"] }
+toml = "0.8.8"
+serde = { version = "1.0", features = ["derive"] }
