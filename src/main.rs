@@ -52,10 +52,9 @@ async fn main() -> Result<(), Error> {
     env_logger::init();
     info!("Starting RepeaterPi Evo v{} by Erich Ellsworth, KG5KEY.", env!("CARGO_PKG_VERSION"));
     info!("This is free software licensed under the GNU General Public License v2.");
-
-    info!("Reading config.toml.");
-    let toml_str = fs::read_to_string("config.toml").expect("Failed to read Cargo.toml file");
-    let config: Config = toml::from_str(&toml_str).expect("Failed to deserialize Cargo.toml");
+    
+    let toml_str = fs::read_to_string("config.toml").expect("Failed to read the configuration file.");
+    let config: Config = toml::from_str(&toml_str).expect("Malformed configuration file.");
 
     info!("Using the '{}' database at endpoint '{}'.", config.influxdb.database_name, config.influxdb.endpoint);
     
