@@ -6,18 +6,15 @@ use std::fs;
 
 #[derive(Debug, Deserialize)]
 struct Config {
-    #[allow(dead_code)] // Disable dead code warning for the entire struct
     influxdb: InfluxDBConfig,
 }
 
 #[derive(Debug, Deserialize)]
 struct InfluxDBConfig {
-    #[allow(dead_code)]
     endpoint: String,
-    #[allow(dead_code)]
     database_name: String,
-    #[allow(dead_code)]
     token: String,
+    site_name: String,
 }
 
 #[derive(InfluxDbWriteable)]
@@ -71,7 +68,7 @@ async fn main() -> Result<(), Error> {
             humidity: 31.0,
             pressure: 1002.0,
             gas: 96.0,
-            location: String::from("kg5key"),
+            location: config.influxdb.site_name,
         }
         .into_query("bme680"),
     ];
