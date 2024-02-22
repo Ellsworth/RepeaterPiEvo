@@ -1,83 +1,45 @@
-use chrono::{Utc, DateTime};
-use influxdb::{Client, Error, InfluxDbWriteable};
+mod sensor_board;
+
+use influxdb::{Client, WriteQuery};
 use log::{info, error};
-use serde::Deserialize;
-use std::fs;
 
-#[derive(Debug, Deserialize)]
-struct Config {
-    influxdb: InfluxDBConfig,
-}
+// TODO: Investigate removing this. This lets us run the async fn's as blocking...
+use tokio::runtime;
 
-#[derive(Debug, Deserialize)]
-struct InfluxDBConfig {
-    endpoint: String,
-    database_name: String,
-    token: String,
-    site_name: String,
-}
-
-#[derive(InfluxDbWriteable)]
-struct BME680 {
-    pub time: DateTime<Utc>,
-    pub temperature_f: f32,
-    pub humidity: f32,
-    pub pressure: f32,
-    pub gas: f32,
-    #[influxdb(tag)]
-    pub location: String,
-}
-
-#[derive(InfluxDbWriteable)]
-struct Voltage {
-    pub time: DateTime<Utc>,
-    pub main: f32,
-    pub amplifier: f32,
-    #[influxdb(tag)]
-    pub location: String,
-}
-
-#[derive(InfluxDbWriteable)]
-struct RFPower {
-    pub time: DateTime<Utc>,
-    pub forward: f32,
-    pub reverse: f32,
-    #[influxdb(tag)]
-    pub location: String,
-}
-
-#[tokio::main]
-async fn main() -> Result<(), Error> {
-
+fn main() {
     env_logger::init();
-    info!("Starting RepeaterPi Evo v{} by Erich Ellsworth, KG5KEY.", env!("CARGO_PKG_VERSION"));
+    info!(
+        "Starting RepeaterPi Evo v{} by Erich Ellsworth, KG5KEY.",
+        env!("CARGO_PKG_VERSION")
+    );
     info!("This is free software licensed under the GNU General Public License v2.");
-    
-    let toml_str = fs::read_to_string("config.toml").expect("Failed to read the configuration file.");
-    let config: Config = toml::from_str(&toml_str).expect("Malformed configuration file.");
 
-    info!("Using the '{}' database at endpoint '{}'.", config.influxdb.database_name, config.influxdb.endpoint);
-    
-    let client = Client::new(config.influxdb.endpoint, config.influxdb.database_name).with_token(config.influxdb.token);
+    let config_data = sensor_board::load_config("config.toml".to_string());
 
-    let sensor_reading = vec![
-        BME680 {
-            time: Utc::now(),
-            temperature_f: 72.0,
-            humidity: 31.0,
-            pressure: 1002.0,
-            gas: 96.0,
-            location: config.influxdb.site_name,
+    let client =     Client::new(
+        config_data.influxdb.endpoint,
+        config_data.influxdb.database_name,
+    )
+    .with_token(config_data.influxdb.token);
+
+    let mut sensor_readings: Vec<WriteQuery> = vec![];
+
+    let rt = runtime::Runtime::new().unwrap();
+
+    // Call the asynchronous function in a blocking manner because reasons...
+    sensor_board::read_sensor_data(&mut sensor_readings);
+
+    match rt.block_on(sensor_board::send_sensor_data(client, &sensor_readings)) {
+        Ok(()) => {
+            info!("Successfully uploaded data to InfluxDB.");
+            sensor_readings.clear();
         }
-        .into_query("bme680"),
-    ];
-
-    info!("Sending sensor readings to InfluxDB.");
-    let result = client.query(sensor_reading).await?;
-
-    if !result.is_empty() {
-        error!("InfluxDB Response: {}", result);
+        Err(err) => {
+            error!("{}", err);
+        }
     }
 
-    Ok(())
+    println!("{:?}", sensor_readings);
+
+    sensor_board::sensorboard_parse();
 }
