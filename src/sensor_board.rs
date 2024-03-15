@@ -31,17 +31,6 @@ pub fn load_config(file_name: String) -> ConfigFile {
 /* ----- BEGIN INFLUXDB STRUCTS ----- */
 
 #[derive(InfluxDbWriteable)]
-struct BME680 {
-    pub time: DateTime<Utc>,
-    pub temperature_f: f32,
-    pub humidity: f32,
-    pub pressure: f32,
-    pub gas: f32,
-    #[influxdb(tag)]
-    pub location: String,
-}
-
-#[derive(InfluxDbWriteable)]
 struct BME280 {
     pub time: DateTime<Utc>,
     pub temperature_f: f32,
@@ -94,36 +83,13 @@ pub fn calculate_swr(forward_power: f32, reverse_power: f32) -> f32 {
     return swr;
 }
 
-
-
-pub fn parse_serial(serial_buf: Vec<u8>) {
-    
-}
-
-
 /* ------ END INFLUXDB STRUCTS ------ */
-
-
-pub fn read_sensor_data_test(sensor_readings: &mut Vec<WriteQuery>) {
-    sensor_readings.push(
-        BME680 {
-            time: Utc::now(),
-            temperature_f: 72.0,
-            humidity: 31.0,
-            pressure: 1002.0,
-            gas: 96.0,
-            location: "kg5key".to_string(),
-        }
-        .into_query("bme680"));
-
-}
-
 
 /// # send_sensor_data()
 pub async fn send_sensor_data(influx_client: influxdb::Client, sensor_readings: Vec<WriteQuery>) -> Result<(), Error> {
 
     info!("Sending sensor readings to InfluxDB.");
-    let result = influx_client.query(sensor_readings).await?;
+    let _result = influx_client.query(sensor_readings).await?;
     
     Ok(())
 }

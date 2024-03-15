@@ -1,16 +1,10 @@
 mod sensor_board;
 
-
-
-use std::io::empty;
-
 use influxdb::{Client, WriteQuery};
 use log::{info, error};
 
 // TODO: Investigate removing this. This lets us run the async fn's as blocking...
 use tokio::runtime;
-
-
 
 fn main() {
     env_logger::init();
@@ -28,13 +22,10 @@ fn main() {
     )
     .with_token(config_data.influxdb.token);
 
-    // Idea: Don't modify sensor_readings, but instead nuke it every time.
+    // Idea: Don't modify sensor_readings, but instead nuke the vec when we're done.
     let mut sensor_readings: Vec<WriteQuery> = vec![];
 
     let rt = runtime::Runtime::new().unwrap();
-
-    // Call the asynchronous function in a blocking manner because reasons...
-    //sensor_board::read_sensor_data_test(&mut sensor_readings);
 
     sensor_readings = sensor_board::splice_sensor_readings(
         "kg5key".into(),
