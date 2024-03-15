@@ -102,7 +102,7 @@ pub async fn send_sensor_data(
     Ok(())
 }
 
-pub fn splice_sensor_readings(location: String, input_string: String) -> Vec<WriteQuery> {
+pub fn splice_sensor_readings(location: String, input_string: &str) -> Vec<WriteQuery> {
     let mut influx_query: Vec<WriteQuery> = vec![];
 
     // Split the string by commas
