@@ -91,7 +91,7 @@ pub fn calculate_swr(forward_power: f32, reverse_power: f32) -> f32 {
 
 /* ------ END INFLUXDB STRUCTS ------ */
 
-/// # send_sensor_data()
+/// # `send_sensor_data()`
 pub async fn send_sensor_data(
     influx_client: influxdb::Client,
     sensor_readings: Vec<WriteQuery>,
