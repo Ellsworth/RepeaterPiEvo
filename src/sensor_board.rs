@@ -1,9 +1,11 @@
-use std::fs;
+use std::{fs, thread::current};
 
 use chrono::{DateTime, Utc};
 use influxdb::{Client, Error, InfluxDbWriteable, WriteQuery};
 use log::{info, error, warn};
 use serde::Deserialize;
+
+//mod voltage_cal;
 
 /* ----- BEGIN CONFIG FILE STRUCTS ------ */
 #[derive(Debug, Deserialize, Clone)]
@@ -45,6 +47,14 @@ struct BME280 {
     pub temperature_f: f32,
     pub humidity: f32,
     pub pressure: f32,
+    #[influxdb(tag)]
+    pub location: String,
+}
+
+#[derive(InfluxDbWriteable)]
+struct TMP36 {
+    pub time: DateTime<Utc>,
+    pub temperature_f: f32,
     #[influxdb(tag)]
     pub location: String,
 }
@@ -94,7 +104,7 @@ pub fn parse_serial(serial_buf: Vec<u8>) {
 /* ------ END INFLUXDB STRUCTS ------ */
 
 
-pub fn read_sensor_data(sensor_readings: &mut Vec<WriteQuery>) {
+pub fn read_sensor_data_test(sensor_readings: &mut Vec<WriteQuery>) {
     sensor_readings.push(
         BME680 {
             time: Utc::now(),
@@ -105,11 +115,12 @@ pub fn read_sensor_data(sensor_readings: &mut Vec<WriteQuery>) {
             location: "kg5key".to_string(),
         }
         .into_query("bme680"));
+
 }
 
 
 /// # send_sensor_data()
-pub async fn send_sensor_data(influx_client: influxdb::Client, sensor_readings: &Vec<WriteQuery>) -> Result<(), Error> {
+pub async fn send_sensor_data(influx_client: influxdb::Client, sensor_readings: Vec<WriteQuery>) -> Result<(), Error> {
 
     info!("Sending sensor readings to InfluxDB.");
     let result = influx_client.query(sensor_readings).await?;
@@ -117,49 +128,63 @@ pub async fn send_sensor_data(influx_client: influxdb::Client, sensor_readings: 
     Ok(())
 }
 
-#[derive(Debug)]
-struct SensorboardData {
-    temperature_f: f32,
-    pressure_pascals: f32,
-    main_voltage: f32,
-    amp_voltage: f32,
-    forward_power: f32,
-    reflected_power: f32,
-    tmp36_voltage: f32,
-}
 
-impl SensorboardData {
-    pub fn from_csv(csv_string: &str) -> Result<SensorboardData, &'static str> {
-        let mut values = csv_string.split(',');
+pub fn splice_sensor_readings(location: String, input_string: String) -> Vec<WriteQuery> {
+    
+    let mut influx_query: Vec<WriteQuery> = vec![];
 
-        // Parse individual values
-        let temperature_f    = values.next().ok_or("Missing temperature_f")?.trim().parse::<f32>().map_err(|_| "Invalid temperature_f")?;
-        let pressure_pascals = values.next().ok_or("Missing pressure_pascals")?.trim().parse::<f32>().map_err(|_| "Invalid pressure_pascals")?;
-        let main_voltage     = values.next().ok_or("Missing main_voltage")?.trim().parse::<f32>().map_err(|_| "Invalid main_voltage")?;
-        let amp_voltage      = values.next().ok_or("Missing amp_voltage")?.trim().parse::<f32>().map_err(|_| "Invalid amp_voltage")?;
-        let forward_power    = values.next().ok_or("Missing forward_power")?.trim().parse::<f32>().map_err(|_| "Invalid forward_power")?;
-        let reflected_power  = values.next().ok_or("Missing reflected_power")?.trim().parse::<f32>().map_err(|_| "Invalid reflected_power")?;
-        let tmp36_voltage    = values.next().ok_or("Missing tmp36_voltage")?.trim().parse::<f32>().map_err(|_| "Invalid tmp36_voltage")?;
+    // Split the string by commas
+    let values: Vec<&str> = input_string.split(',').collect();
 
-        // Ensure no extra values are present
-        if values.next().is_some() {
-            return Err("Too many fields");
+    let time = Utc::now();
+
+    influx_query.push(
+        BME280 {
+            time,
+            temperature_f: values[0].parse().unwrap(),
+            humidity: values[1].parse().unwrap(),
+            pressure: values[2].parse().unwrap(),
+            location: location.clone(),
         }
-
-        Ok(SensorboardData {temperature_f, pressure_pascals, main_voltage, amp_voltage, forward_power, reflected_power, tmp36_voltage})
-    }
-}
-
-pub fn sensorboard_parse() {
-    let rx_string: String = "72.4,1002.3,13.2,13.8,74,13,72.1".to_string();
-
-    match SensorboardData::from_csv(&rx_string) {
-        Ok(my_struct) => {
-            println!("{:?}", my_struct);
+        .into_query("bme280")
+    );
+    
+    influx_query.push(
+        TMP36 {
+            time,
+            temperature_f: values[3].parse().unwrap(),
+            location: location.clone(),
         }
-        Err(err) => {
-            eprintln!("Error: {}", err);
-        }
-    }
+        .into_query("bme280")
+    );
 
+    // TODO: Calibrate & scale the voltage sensor readings.
+    let main_voltage: f32 = values[4].parse().unwrap();
+    let amp_voltage: f32 = values[5].parse().unwrap();
+
+    influx_query.push(
+        SupplyVoltage {
+            time,
+            main: main_voltage,
+            amplifier: amp_voltage,
+            location: location.clone(),
+        }
+        .into_query("voltage")
+    );
+
+    let rf_forward: f32 = values[6].parse().unwrap();
+    let rf_reverse: f32 = values[7].parse().unwrap();
+
+    influx_query.push(
+        RFPower {
+            time,
+            forward: rf_forward,
+            reverse: rf_reverse,
+            swr: calculate_swr(rf_forward, rf_reverse),
+            location,
+        }
+        .into_query("rf_power")
+    );
+
+    influx_query
 }
