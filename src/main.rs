@@ -23,7 +23,7 @@ fn main() {
     .with_token(config_data.influxdb.token);
 
     // Idea: Don't modify sensor_readings, but instead nuke the vec when we're done.
-    let mut sensor_readings: Vec<WriteQuery> = vec![];
+    let mut sensor_readings: Vec<WriteQuery>;
 
     let rt = runtime::Runtime::new().unwrap();
 

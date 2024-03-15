@@ -1,8 +1,8 @@
-use std::{fs, thread::current};
+use std::{fs};
 
 use chrono::{DateTime, Utc};
-use influxdb::{Client, Error, InfluxDbWriteable, WriteQuery};
-use log::{info, error, warn};
+use influxdb::{Error, InfluxDbWriteable, WriteQuery};
+use log::{info, warn};
 use serde::Deserialize;
 
 //mod voltage_cal;
