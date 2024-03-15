@@ -1,7 +1,7 @@
 mod sensor_board;
 
 use influxdb::{Client, WriteQuery};
-use log::{info, error};
+use log::{error, info};
 
 // TODO: Investigate removing this. This lets us run the async fn's as blocking...
 use tokio::runtime;
@@ -29,12 +29,15 @@ fn main() {
 
     sensor_readings = sensor_board::splice_sensor_readings(
         "kg5key".into(),
-        "0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0".into()
+        "0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0".into(),
     );
-    
+
     println!("{:?}", sensor_readings);
 
-    match rt.block_on(sensor_board::send_sensor_data(client, sensor_readings.clone())) {
+    match rt.block_on(sensor_board::send_sensor_data(
+        client,
+        sensor_readings.clone(),
+    )) {
         Ok(()) => {
             info!("Successfully uploaded data to InfluxDB.");
             sensor_readings.clear();
@@ -45,5 +48,4 @@ fn main() {
     }
 
     assert!(sensor_readings.is_empty());
-
 }

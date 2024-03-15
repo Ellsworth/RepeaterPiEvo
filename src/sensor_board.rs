@@ -1,4 +1,4 @@
-use std::{fs};
+use std::fs;
 
 use chrono::{DateTime, Utc};
 use influxdb::{Error, InfluxDbWriteable, WriteQuery};
@@ -68,15 +68,21 @@ struct RFPower {
 }
 
 pub fn calculate_swr(forward_power: f32, reverse_power: f32) -> f32 {
-
-    let swr = (1f32 + (reverse_power / forward_power).sqrt()) / (1f32 - (reverse_power / forward_power).sqrt());
+    let swr = (1f32 + (reverse_power / forward_power).sqrt())
+        / (1f32 - (reverse_power / forward_power).sqrt());
 
     if swr.is_nan() {
-        warn!("Calculated SWR is NaN. Result set to zero instead. Forward: {}, Reverse {}", forward_power, reverse_power);
+        warn!(
+            "Calculated SWR is NaN. Result set to zero instead. Forward: {}, Reverse {}",
+            forward_power, reverse_power
+        );
         return 0f32;
     }
     if swr.is_sign_negative() {
-        warn!("Calculated SWR is negative. Result set to zero instead. Forward: {}, Reverse {}", forward_power, reverse_power);
+        warn!(
+            "Calculated SWR is negative. Result set to zero instead. Forward: {}, Reverse {}",
+            forward_power, reverse_power
+        );
         return 0f32;
     }
 
@@ -86,17 +92,17 @@ pub fn calculate_swr(forward_power: f32, reverse_power: f32) -> f32 {
 /* ------ END INFLUXDB STRUCTS ------ */
 
 /// # send_sensor_data()
-pub async fn send_sensor_data(influx_client: influxdb::Client, sensor_readings: Vec<WriteQuery>) -> Result<(), Error> {
-
+pub async fn send_sensor_data(
+    influx_client: influxdb::Client,
+    sensor_readings: Vec<WriteQuery>,
+) -> Result<(), Error> {
     info!("Sending sensor readings to InfluxDB.");
     let _result = influx_client.query(sensor_readings).await?;
-    
+
     Ok(())
 }
 
-
 pub fn splice_sensor_readings(location: String, input_string: String) -> Vec<WriteQuery> {
-    
     let mut influx_query: Vec<WriteQuery> = vec![];
 
     // Split the string by commas
@@ -112,16 +118,16 @@ pub fn splice_sensor_readings(location: String, input_string: String) -> Vec<Wri
             pressure: values[2].parse().unwrap(),
             location: location.clone(),
         }
-        .into_query("bme280")
+        .into_query("bme280"),
     );
-    
+
     influx_query.push(
         TMP36 {
             time,
             temperature_f: values[3].parse().unwrap(),
             location: location.clone(),
         }
-        .into_query("bme280")
+        .into_query("bme280"),
     );
 
     // TODO: Calibrate & scale the voltage sensor readings.
@@ -135,7 +141,7 @@ pub fn splice_sensor_readings(location: String, input_string: String) -> Vec<Wri
             amplifier: amp_voltage,
             location: location.clone(),
         }
-        .into_query("voltage")
+        .into_query("voltage"),
     );
 
     let rf_forward: f32 = values[6].parse().unwrap();
@@ -149,7 +155,7 @@ pub fn splice_sensor_readings(location: String, input_string: String) -> Vec<Wri
             swr: calculate_swr(rf_forward, rf_reverse),
             location,
         }
-        .into_query("rf_power")
+        .into_query("rf_power"),
     );
 
     influx_query
