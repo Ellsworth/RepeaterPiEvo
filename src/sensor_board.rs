@@ -1,3 +1,5 @@
+#![deny(clippy::all, clippy::pedantic, clippy::allow_attributes_without_reason)]
+
 use std::fs;
 
 use chrono::{DateTime, Utc};

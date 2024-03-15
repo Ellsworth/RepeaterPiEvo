@@ -1,3 +1,5 @@
+#![deny(clippy::all, clippy::pedantic, clippy::allow_attributes_without_reason)]
+
 mod sensor_board;
 
 use influxdb::{Client, WriteQuery};
