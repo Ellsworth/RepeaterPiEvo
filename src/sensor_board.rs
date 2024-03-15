@@ -25,7 +25,7 @@ pub struct InfluxDBConfig {
 
 pub fn load_config(file_name: String) -> ConfigFile {
     let toml_str = fs::read_to_string(file_name).expect("Failed to read the configuration file.");
-    return toml::from_str(&toml_str).expect("Malformed configuration file.");
+    toml::from_str(&toml_str).expect("Malformed configuration file.")
 }
 
 /* ----- BEGIN INFLUXDB STRUCTS ----- */
@@ -80,7 +80,7 @@ pub fn calculate_swr(forward_power: f32, reverse_power: f32) -> f32 {
         return 0f32;
     }
 
-    return swr;
+    swr
 }
 
 /* ------ END INFLUXDB STRUCTS ------ */
