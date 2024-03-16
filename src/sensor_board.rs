@@ -35,9 +35,9 @@ pub fn load_config(file_name: String) -> ConfigFile {
 #[derive(InfluxDbWriteable)]
 struct BME280 {
     pub time: DateTime<Utc>,
-    pub temperature_f: f32,
-    pub humidity: f32,
-    pub pressure: f32,
+    pub temperature_f: f64,
+    pub humidity: f64,
+    pub pressure: f64,
     #[influxdb(tag)]
     pub location: String,
 }
@@ -45,7 +45,7 @@ struct BME280 {
 #[derive(InfluxDbWriteable)]
 struct TMP36 {
     pub time: DateTime<Utc>,
-    pub temperature_f: f32,
+    pub temperature_f: f64,
     #[influxdb(tag)]
     pub location: String,
 }
@@ -53,8 +53,8 @@ struct TMP36 {
 #[derive(InfluxDbWriteable)]
 struct SupplyVoltage {
     pub time: DateTime<Utc>,
-    pub main: f32,
-    pub amplifier: f32,
+    pub main: f64,
+    pub amplifier: f64,
     #[influxdb(tag)]
     pub location: String,
 }
@@ -62,30 +62,30 @@ struct SupplyVoltage {
 #[derive(InfluxDbWriteable)]
 struct RFPower {
     pub time: DateTime<Utc>,
-    pub forward: f32,
-    pub reverse: f32,
-    pub swr: f32,
+    pub forward: f64,
+    pub reverse: f64,
+    pub swr: f64,
     #[influxdb(tag)]
     pub location: String,
 }
 
-pub fn calculate_swr(forward_power: f32, reverse_power: f32) -> f32 {
-    let swr = (1f32 + (reverse_power / forward_power).sqrt())
-        / (1f32 - (reverse_power / forward_power).sqrt());
+pub fn calculate_swr(forward_power: f64, reverse_power: f64) -> f64 {
+    let swr = (1f64 + (reverse_power / forward_power).sqrt())
+        / (1f64 - (reverse_power / forward_power).sqrt());
 
     if swr.is_nan() {
         warn!(
             "Calculated SWR is NaN. Result set to zero instead. Forward: {}, Reverse {}",
             forward_power, reverse_power
         );
-        return 0f32;
+        return 0f64;
     }
     if swr.is_sign_negative() {
         warn!(
             "Calculated SWR is negative. Result set to zero instead. Forward: {}, Reverse {}",
             forward_power, reverse_power
         );
-        return 0f32;
+        return 0f64;
     }
 
     swr
@@ -133,8 +133,8 @@ pub fn splice_sensor_readings(location: String, input_string: &str) -> Vec<Write
     );
 
     // TODO: Calibrate & scale the voltage sensor readings.
-    let main_voltage: f32 = values[4].parse().unwrap();
-    let amp_voltage: f32 = values[5].parse().unwrap();
+    let main_voltage: f64 = values[4].parse().unwrap();
+    let amp_voltage: f64 = values[5].parse().unwrap();
 
     influx_query.push(
         SupplyVoltage {
@@ -146,8 +146,8 @@ pub fn splice_sensor_readings(location: String, input_string: &str) -> Vec<Write
         .into_query("voltage"),
     );
 
-    let rf_forward: f32 = values[6].parse().unwrap();
-    let rf_reverse: f32 = values[7].parse().unwrap();
+    let rf_forward: f64 = values[6].parse().unwrap();
+    let rf_reverse: f64 = values[7].parse().unwrap();
 
     influx_query.push(
         RFPower {
