@@ -13,7 +13,7 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize, Clone)]
 pub struct ConfigFile {
     pub influxdb: InfluxDBConfig,
-    pub calibration: CalibrationConfig
+    pub calibration: CalibrationConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
