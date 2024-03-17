@@ -31,7 +31,7 @@ fn main() {
 
     sensor_readings = sensor_board::splice_sensor_readings(
         "kg5key".into(),
-        "0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0",
+        "0.0,1.0,2.0,3.0,4.0,5.0,10.0,2.0",
         &config_data.calibration,
     );
 

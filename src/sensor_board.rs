@@ -4,7 +4,7 @@ use std::fs;
 
 use chrono::{DateTime, Utc};
 use influxdb::{Error, InfluxDbWriteable, WriteQuery};
-use log::{info, warn};
+use log::{error, info, warn};
 use serde::Deserialize;
 
 /* ----- BEGIN CONFIG FILE STRUCTS ------ */
@@ -132,8 +132,11 @@ pub fn splice_sensor_readings(
 
     // Split the string by commas
     let values: Vec<&str> = input_string.split(',').collect();
-
     let time = Utc::now();
+
+    if values.len() != 8 {
+        error!("Split values has unexpected size of {}", values.len());
+    }
 
     influx_query.push(
         BME280 {
@@ -152,7 +155,7 @@ pub fn splice_sensor_readings(
             temperature_f: values[3].parse().unwrap(),
             location: location.clone(),
         }
-        .into_query("bme280"),
+        .into_query("tmp36"),
     );
 
     let main_voltage: f64 = values[4].parse().unwrap();
@@ -168,14 +171,14 @@ pub fn splice_sensor_readings(
         .into_query("voltage"),
     );
 
-    let forward: f64 = evaluate_polynomial(&calibration.power_forward, values[6].parse().unwrap());
-    let reverse: f64 = evaluate_polynomial(&calibration.power_forward, values[7].parse().unwrap());
+    let forward: f64 = values[6].parse().unwrap();
+    let reverse: f64 = values[7].parse().unwrap();
 
     influx_query.push(
         RFPower {
             time,
-            forward,
-            reverse,
+            forward: evaluate_polynomial(&calibration.power_forward, forward),
+            reverse: evaluate_polynomial(&calibration.power_reverse, reverse),
             swr: calculate_swr(forward, reverse),
             location,
         }
