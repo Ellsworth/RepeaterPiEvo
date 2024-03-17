@@ -111,7 +111,23 @@ pub async fn send_sensor_data(
     Ok(())
 }
 
-pub fn splice_sensor_readings(location: String, input_string: &str) -> Vec<WriteQuery> {
+fn evaluate_polynomial(coefficients: &[f64], x: f64) -> f64 {
+    let mut result = 0.0;
+    let mut power_of_x = 1.0;
+
+    for &coefficient in coefficients {
+        result += coefficient * power_of_x;
+        power_of_x *= x;
+    }
+
+    result
+}
+
+pub fn splice_sensor_readings(
+    location: String,
+    input_string: &str,
+    calibration: &CalibrationConfig,
+) -> Vec<WriteQuery> {
     let mut influx_query: Vec<WriteQuery> = vec![];
 
     // Split the string by commas
@@ -139,29 +155,28 @@ pub fn splice_sensor_readings(location: String, input_string: &str) -> Vec<Write
         .into_query("bme280"),
     );
 
-    // TODO: Calibrate & scale the voltage sensor readings.
     let main_voltage: f64 = values[4].parse().unwrap();
     let amp_voltage: f64 = values[5].parse().unwrap();
 
     influx_query.push(
         SupplyVoltage {
             time,
-            main: main_voltage,
-            amplifier: amp_voltage,
+            main: evaluate_polynomial(&calibration.voltage_main, main_voltage),
+            amplifier: evaluate_polynomial(&calibration.voltage_amp, amp_voltage),
             location: location.clone(),
         }
         .into_query("voltage"),
     );
 
-    let rf_forward: f64 = values[6].parse().unwrap();
-    let rf_reverse: f64 = values[7].parse().unwrap();
+    let forward: f64 = evaluate_polynomial(&calibration.power_forward, values[6].parse().unwrap());
+    let reverse: f64 = evaluate_polynomial(&calibration.power_forward, values[7].parse().unwrap());
 
     influx_query.push(
         RFPower {
             time,
-            forward: rf_forward,
-            reverse: rf_reverse,
-            swr: calculate_swr(rf_forward, rf_reverse),
+            forward,
+            reverse,
+            swr: calculate_swr(forward, reverse),
             location,
         }
         .into_query("rf_power"),
