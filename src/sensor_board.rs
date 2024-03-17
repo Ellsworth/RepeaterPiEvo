@@ -7,8 +7,6 @@ use influxdb::{Error, InfluxDbWriteable, WriteQuery};
 use log::{info, warn};
 use serde::Deserialize;
 
-//mod voltage_cal;
-
 /* ----- BEGIN CONFIG FILE STRUCTS ------ */
 #[derive(Debug, Deserialize, Clone)]
 pub struct ConfigFile {
