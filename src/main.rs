@@ -42,7 +42,8 @@ fn main() {
         sensor_readings.clone(),
     )) {
         Ok(()) => {
-            info!("Successfully uploaded data to InfluxDB.");
+            info!("Successfully uploaded {} measurements to InfluxDB.", 
+                sensor_readings.len());
             sensor_readings.clear();
         }
         Err(err) => {
