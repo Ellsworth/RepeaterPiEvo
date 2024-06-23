@@ -9,7 +9,7 @@ edition = "2021"
 influxdb = { version = "0.7.1", features = ["derive"] }
 chrono = {version = "0.4.31"}
 tokio = {version = "1.31.0", features = ["full"] }
-env_logger = "0.10.1"
+env_logger = "0.11.3"
 log = "0.4.20"
 config = { version = "0.14.0", features = ["ini"] }
 toml = "0.8.8"
