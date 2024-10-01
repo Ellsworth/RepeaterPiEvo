@@ -30,7 +30,7 @@ fn main() {
     let rt = runtime::Runtime::new().unwrap();
 
     sensor_readings = sensor_board::splice_sensor_readings(
-        "kg5key".into(),
+        config_data.influxdb.site_name,
         "0.0,1.0,2.0,3.0,4.0,5.0,10.0,2.0",
         &config_data.calibration,
     );
@@ -42,7 +42,10 @@ fn main() {
         sensor_readings.clone(),
     )) {
         Ok(()) => {
-            info!("Successfully uploaded data to InfluxDB.");
+            info!(
+                "Successfully uploaded {} measurements to InfluxDB.",
+                sensor_readings.len()
+            );
             sensor_readings.clear();
         }
         Err(err) => {
