@@ -1,8 +1,7 @@
 #![deny(clippy::all, clippy::pedantic, clippy::allow_attributes_without_reason)]
 
 use chrono::{DateTime, Utc};
-use influxdb::{Error, InfluxDbWriteable, WriteQuery};
-use log::{error, info, warn};
+use influxdb::{InfluxDbWriteable, WriteQuery};
 
 /* ----- BEGIN INFLUXDB STRUCTS ----- */
 
@@ -47,16 +46,18 @@ pub fn calculate_swr(forward_power: f64, reverse_power: f64) -> f64 {
         / (1f64 - (reverse_power / forward_power).sqrt());
 
     if swr.is_nan() {
-        warn!(
+        log::warn!(
             "Calculated SWR is NaN. Result set to zero instead. Forward: {}, Reverse {}",
-            forward_power, reverse_power
+            forward_power,
+            reverse_power
         );
         return 0f64;
     }
     if swr.is_sign_negative() {
-        warn!(
+        log::warn!(
             "Calculated SWR is negative. Result set to zero instead. Forward: {}, Reverse {}",
-            forward_power, reverse_power
+            forward_power,
+            reverse_power
         );
         return 0f64;
     }
@@ -65,17 +66,6 @@ pub fn calculate_swr(forward_power: f64, reverse_power: f64) -> f64 {
 }
 
 /* ------ END INFLUXDB STRUCTS ------ */
-
-/// # `send_sensor_data()`
-pub async fn send_sensor_data(
-    influx_client: influxdb::Client,
-    sensor_readings: Vec<WriteQuery>,
-) -> Result<(), Error> {
-    info!("Sending sensor readings to InfluxDB.");
-    let _result = influx_client.query(sensor_readings).await?;
-
-    Ok(())
-}
 
 fn evaluate_polynomial(coefficients: &[f64], x: f64) -> f64 {
     let mut result = 0.0;
@@ -92,7 +82,7 @@ fn evaluate_polynomial(coefficients: &[f64], x: f64) -> f64 {
 pub fn splice_sensor_readings(
     location: String,
     input_string: &str,
-    calibration: &crate::config::CalibrationConfig,
+    calibration: &crate::config::Calibration,
 ) -> Vec<WriteQuery> {
     let mut influx_query: Vec<WriteQuery> = vec![];
 
@@ -101,7 +91,7 @@ pub fn splice_sensor_readings(
     let time = Utc::now();
 
     if values.len() != 8 {
-        error!("Split values has unexpected size of {}", values.len());
+        log::error!("Split values has unexpected size of {}", values.len());
     }
 
     influx_query.push(
