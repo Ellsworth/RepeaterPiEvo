@@ -1,49 +1,15 @@
 #![deny(clippy::all, clippy::pedantic, clippy::allow_attributes_without_reason)]
 
-use std::fs;
-
 use chrono::{DateTime, Utc};
 use influxdb::{Error, InfluxDbWriteable, WriteQuery};
 use log::{error, info, warn};
-use serde::Deserialize;
-
-/* ----- BEGIN CONFIG FILE STRUCTS ------ */
-#[derive(Debug, Deserialize, Clone)]
-pub struct ConfigFile {
-    pub influxdb: InfluxDBConfig,
-    pub calibration: CalibrationConfig,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct InfluxDBConfig {
-    pub endpoint: String,
-    pub database_name: String,
-    pub token: String,
-    pub site_name: String,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct CalibrationConfig {
-    pub voltage_main: Vec<f64>,
-    pub voltage_amp: Vec<f64>,
-    pub power_forward: Vec<f64>,
-    pub power_reverse: Vec<f64>,
-}
-
-/* ----- END CONFIG FILE STRUCTS ------ */
-
-pub fn load_config(file_name: String) -> ConfigFile {
-    let toml_str = fs::read_to_string(file_name).expect("Failed to read the configuration file.");
-    toml::from_str(&toml_str).expect("Malformed configuration file.")
-}
 
 /* ----- BEGIN INFLUXDB STRUCTS ----- */
 
 #[derive(InfluxDbWriteable)]
-struct BME280 {
+struct BMP280 {
     pub time: DateTime<Utc>,
     pub temperature_f: f64,
-    pub humidity: f64,
     pub pressure: f64,
     #[influxdb(tag)]
     pub location: String,
@@ -126,7 +92,7 @@ fn evaluate_polynomial(coefficients: &[f64], x: f64) -> f64 {
 pub fn splice_sensor_readings(
     location: String,
     input_string: &str,
-    calibration: &CalibrationConfig,
+    calibration: &crate::config::CalibrationConfig,
 ) -> Vec<WriteQuery> {
     let mut influx_query: Vec<WriteQuery> = vec![];
 
@@ -139,27 +105,26 @@ pub fn splice_sensor_readings(
     }
 
     influx_query.push(
-        BME280 {
+        BMP280 {
             time,
             temperature_f: values[0].parse().unwrap(),
-            humidity: values[1].parse().unwrap(),
-            pressure: values[2].parse().unwrap(),
+            pressure: values[1].parse().unwrap(),
             location: location.clone(),
         }
-        .into_query("bme280"),
+        .into_query("bmp280"),
     );
 
     influx_query.push(
         TMP36 {
             time,
-            temperature_f: values[3].parse().unwrap(),
+            temperature_f: values[2].parse().unwrap(),
             location: location.clone(),
         }
         .into_query("tmp36"),
     );
 
-    let main_voltage: f64 = values[4].parse().unwrap();
-    let amp_voltage: f64 = values[5].parse().unwrap();
+    let main_voltage: f64 = values[3].parse().unwrap();
+    let amp_voltage: f64 = values[4].parse().unwrap();
 
     influx_query.push(
         SupplyVoltage {
@@ -171,8 +136,8 @@ pub fn splice_sensor_readings(
         .into_query("voltage"),
     );
 
-    let forward: f64 = values[6].parse().unwrap();
-    let reverse: f64 = values[7].parse().unwrap();
+    let forward: f64 = values[5].parse().unwrap();
+    let reverse: f64 = values[6].parse().unwrap();
 
     influx_query.push(
         RFPower {
