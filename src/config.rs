@@ -6,6 +6,7 @@ use std::fs;
 pub struct Root {
     pub influxdb: InfluxDB,
     pub calibration: Calibration,
+    pub serial: Serial,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -20,8 +21,15 @@ pub struct InfluxDB {
 pub struct Calibration {
     pub voltage_main: Vec<f64>,
     pub voltage_amp: Vec<f64>,
+    pub voltage_usb: Vec<f64>,
     pub power_forward: Vec<f64>,
     pub power_reverse: Vec<f64>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Serial {
+    pub port: String,
+    pub baud: u32,
 }
 
 /* ----- END CONFIG FILE STRUCTS ------ */
