@@ -19,3 +19,4 @@ tokio-serial =  { version = "5.4.4", features = ["bytes", "tokio-util"] }
 bytes = "1.7.2"
 tokio-util = "0.7.12"
 futures = "0.3.30"
+vcgencmd = "0.3.1"
