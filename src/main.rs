@@ -26,8 +26,12 @@ async fn main() -> tokio_serial::Result<()> {
     )
     .with_token(config_data.influxdb.token);
 
-    let tty_path: String = "/dev/ttyACM0".into();
-    let port = tokio_serial::new(tty_path, 9600).open_native_async()?;
+    let tty_path = config_data.serial.port;
+    let baud = config_data.serial.baud;
+
+    log::info!("Opening serial port '{}' at {} baud.", tty_path, baud);
+
+    let port = tokio_serial::new(tty_path, baud).open_native_async()?;
     let mut reader = serial_reader::LineCodec.framed(port);
 
     while let Some(line_result) = reader.next().await {
