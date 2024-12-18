@@ -27,6 +27,7 @@ struct SupplyVoltage {
     pub time: DateTime<Utc>,
     pub main: f64,
     pub amplifier: f64,
+    pub usb: f64,
     #[influxdb(tag)]
     pub location: String,
 }
@@ -90,9 +91,11 @@ pub fn splice_sensor_readings(
     let values: Vec<&str> = input_string.split(',').collect();
     let time = Utc::now();
 
-    if values.len() != 8 {
+    if values.len() != 9 {
         log::error!("Split values has unexpected size of {}", values.len());
     }
+
+    // bmp280_temp_f, bmp280_press, tmp36_temp_f, main_v, amp_v, forward, reverse
 
     influx_query.push(
         BMP280 {
@@ -115,19 +118,22 @@ pub fn splice_sensor_readings(
 
     let main_voltage: f64 = values[3].parse().unwrap();
     let amp_voltage: f64 = values[4].parse().unwrap();
+    let usb_voltage: f64 = values[5].parse().unwrap();
+
 
     influx_query.push(
         SupplyVoltage {
             time,
             main: evaluate_polynomial(&calibration.voltage_main, main_voltage),
             amplifier: evaluate_polynomial(&calibration.voltage_amp, amp_voltage),
+            usb: evaluate_polynomial(&calibration.voltage_usb, usb_voltage),
             location: location.clone(),
         }
         .into_query("voltage"),
     );
 
-    let forward: f64 = values[5].parse().unwrap();
-    let reverse: f64 = values[6].parse().unwrap();
+    let forward: f64 = values[6].parse().unwrap();
+    let reverse: f64 = values[7].parse().unwrap();
 
     influx_query.push(
         RFPower {
