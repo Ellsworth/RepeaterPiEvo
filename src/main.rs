@@ -47,7 +47,7 @@ async fn main() -> tokio_serial::Result<()> {
 
         // Get the readings from vcgencmd.
         let vcgencmd_readings =
-            vcgencmd_influx::get_vcgencmd_stats(config_data.influxdb.site_name.to_string());
+            vcgencmd_influx::get_vcgencmd_stats(config_data.influxdb.site_name.clone());
 
         // Combine the two Vec.
         let sensor_readings = [sensor_readings, vcgencmd_readings].concat();
