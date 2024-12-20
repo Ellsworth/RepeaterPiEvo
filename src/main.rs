@@ -37,7 +37,7 @@ async fn main() -> tokio_serial::Result<()> {
 
     while let Some(line_result) = reader.next().await {
         let line = line_result.expect("Failed to read line");
-        log::debug!("Received data from sensorboard: {line}");
+        log::debug!("Received data from sensorboard: {:?}", line);
 
         let sensor_readings = sensor_board::splice_sensor_readings(
             config_data.influxdb.site_name.clone(),
@@ -46,7 +46,8 @@ async fn main() -> tokio_serial::Result<()> {
         );
 
         // Get the readings from vcgencmd.
-        let vcgencmd_readings = vcgencmd_influx::get_vcgencmd_stats(config_data.influxdb.site_name.clone(),);
+        let vcgencmd_readings =
+            vcgencmd_influx::get_vcgencmd_stats(config_data.influxdb.site_name.clone());
 
         // Combine the two Vec.
         let sensor_readings = [sensor_readings, vcgencmd_readings].concat();

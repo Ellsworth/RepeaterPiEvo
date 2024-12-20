@@ -120,7 +120,6 @@ pub fn splice_sensor_readings(
     let amp_voltage: f64 = values[4].parse().unwrap();
     let usb_voltage: f64 = values[5].parse().unwrap();
 
-
     influx_query.push(
         SupplyVoltage {
             time,

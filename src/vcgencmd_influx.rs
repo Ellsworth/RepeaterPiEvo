@@ -1,7 +1,6 @@
 use chrono::{DateTime, Utc};
 use influxdb::{InfluxDbWriteable, WriteQuery};
 
-
 #[derive(InfluxDbWriteable)]
 struct PiStatus {
     pub time: DateTime<Utc>,
@@ -31,6 +30,6 @@ pub(crate) fn get_vcgencmd_stats(location: String) -> Vec<WriteQuery> {
     } else {
         log::error!("Failed to run vcgencmd!");
     }
-    
+
     influx_query
 }
