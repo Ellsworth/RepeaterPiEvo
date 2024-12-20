@@ -27,7 +27,7 @@ pub(crate) fn get_vcgencmd_stats(location: String) -> Vec<WriteQuery> {
                 time,
                 temperature_c: temp_c,
                 clock_freq_hz: clock_freq as i64,
-                location: location,
+                location,
             }
             .into_query("pi_status"),
         );
