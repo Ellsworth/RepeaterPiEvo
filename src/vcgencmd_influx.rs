@@ -10,9 +10,10 @@ struct PiStatus {
     pub location: String,
 }
 
-/// Allowing `clippy::needless_pass_by_value` because this function
-/// should match the format as the other WriteQuery helper functions.
-#[allow(clippy::needless_pass_by_value)]
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "WriteQuery helpers should take the same args."
+)]
 pub(crate) fn get_vcgencmd_stats(location: String) -> Vec<WriteQuery> {
     let time = Utc::now();
     let mut influx_query: Vec<WriteQuery> = vec![];
