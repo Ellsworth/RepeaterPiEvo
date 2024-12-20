@@ -10,6 +10,9 @@ struct PiStatus {
     pub location: String,
 }
 
+/// Allowing `clippy::needless_pass_by_value` because this function
+/// should match the format as the other WriteQuery helper functions.
+#[allow(clippy::needless_pass_by_value)]
 pub(crate) fn get_vcgencmd_stats(location: String) -> Vec<WriteQuery> {
     let time = Utc::now();
     let mut influx_query: Vec<WriteQuery> = vec![];
@@ -23,7 +26,7 @@ pub(crate) fn get_vcgencmd_stats(location: String) -> Vec<WriteQuery> {
                 time,
                 temperature_c: temp_c,
                 clock_freq_hz: clock_freq as i64,
-                location: location.clone(),
+                location: location,
             }
             .into_query("pi_status"),
         );
