@@ -14,10 +14,16 @@ async fn main() -> tokio_serial::Result<()> {
     env_logger::init();
 
     log::info!(
-        "Starting RepeaterPi Evo v{} by Erich Ellsworth, KG5KEY.",
+        "RepeaterPi Evo v{}, Copyright (C) 2024 Erich Ellsworth, KG5KEY.",
         env!("CARGO_PKG_VERSION")
     );
-    log::info!("This is free software licensed under the GNU General Public License v2.");
+
+    log::info!(
+        "This program is free software; you can redistribute it and/or \
+     modify it under the terms of the GNU General Public License \
+     as published by the Free Software Foundation; either version 2 \
+     of the License, or (at your option) any later version."
+    );
 
     let config_data = config::load("config.toml".to_string());
 
