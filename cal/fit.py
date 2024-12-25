@@ -30,6 +30,7 @@ config_dict = {
         "voltage_amp": np.polyfit(df_voltage["Amplifier"], df_voltage["Ground Truth"], 5).tolist()[::-1],
         "power_forward": np.polyfit(df_power_forward["Counts (ADC)"], df_power_forward["Ground Truth (W)"], 5).tolist()[::-1],
         "power_reverse": np.polyfit(df_power_reverse["Counts (ADC)"], df_power_reverse["Ground Truth (W)"], 5).tolist()[::-1],
+        "voltage_usb":  [0.0, 0.01788856304985337243401759530791]
     }
 }
 
