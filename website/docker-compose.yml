@@ -1,0 +1,34 @@
+services:
+  cloudflared:
+    image: "docker.io/cloudflare/cloudflared:latest"
+    restart: always
+    command: "tunnel --no-autoupdate run"
+    environment:
+      - "TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}"
+  caddy:
+    image: caddy:2
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - $PWD/config/caddy:/etc/caddy
+      - $PWD/storage/caddy/:/data
+  grafana:
+    image: grafana/grafana-enterprise
+    restart: always
+    volumes:
+      - $PWD/storage/grafana:/var/lib/grafana
+      #- $PWD/grafana.ini:/etc/grafana/grafana.ini
+  influxdb:
+    image: influxdb:2.6-alpine
+    restart: always
+    volumes:
+      - $PWD/storage/influxdb:/var/lib/influxdb2:rw
+  watchtower:
+    image: containrrr/watchtower
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_ROLLING_RESTART=true
+    restart: always
+    volumes:
+      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
