@@ -46,21 +46,8 @@ pub fn calculate_swr(forward_power: f64, reverse_power: f64) -> f64 {
     let swr = (1f64 + (reverse_power / forward_power).sqrt())
         / (1f64 - (reverse_power / forward_power).sqrt());
 
-    if swr.is_nan() {
-        log::warn!(
-            "Calculated SWR is NaN. Result set to zero instead. Forward: {}, Reverse {}",
-            forward_power,
-            reverse_power
-        );
-        return 0f64;
-    }
-    if swr.is_sign_negative() {
-        log::warn!(
-            "Calculated SWR is negative. Result set to zero instead. Forward: {}, Reverse {}",
-            forward_power,
-            reverse_power
-        );
-        return 0f64;
+    if (reverse_power > forward_power) | swr.is_sign_negative() {
+        log::warn!("Calculated SWR is negative due to the reflected power being greater than the forward power. This should not be possible under normal operation.");
     }
 
     swr
