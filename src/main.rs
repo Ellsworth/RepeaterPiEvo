@@ -7,7 +7,7 @@ use tokio_util::codec::Decoder;
 mod config;
 mod sensor_board;
 mod serial_reader;
-mod vcgencmd_influx;
+mod cpu_stats;
 
 #[tokio::main]
 async fn main() -> tokio_serial::Result<()> {
@@ -52,11 +52,11 @@ async fn main() -> tokio_serial::Result<()> {
         );
 
         // Get the readings from vcgencmd.
-        let vcgencmd_readings =
-            vcgencmd_influx::get_vcgencmd_stats(config_data.influxdb.site_name.clone());
+        let cpu_readings =
+            cpu_stats::get_cpu_stats(config_data.influxdb.site_name.clone());
 
         // Combine the two Vec.
-        let sensor_readings = [sensor_readings, vcgencmd_readings].concat();
+        let sensor_readings = [sensor_readings, cpu_readings].concat();
 
         log::debug!("{:?}", sensor_readings);
 
