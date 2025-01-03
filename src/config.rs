@@ -24,6 +24,7 @@ pub struct Calibration {
     pub voltage_usb: Vec<f64>,
     pub power_forward: Vec<f64>,
     pub power_reverse: Vec<f64>,
+    pub voltage_clamp: f64,
 }
 
 #[derive(Debug, Deserialize, Clone)]

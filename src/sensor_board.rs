@@ -67,6 +67,14 @@ fn evaluate_polynomial(coefficients: &[f64], x: f64) -> f64 {
     result
 }
 
+fn clamp_value(input: f64, limit: f64) -> f64 {
+    if input < limit {
+        0.0
+    } else {
+        input
+    }
+}
+
 pub fn splice_sensor_readings(
     location: String,
     input_string: &str,
@@ -110,8 +118,14 @@ pub fn splice_sensor_readings(
     influx_query.push(
         SupplyVoltage {
             time,
-            main: evaluate_polynomial(&calibration.voltage_main, main_voltage),
-            amplifier: evaluate_polynomial(&calibration.voltage_amp, amp_voltage),
+            main: clamp_value(
+                evaluate_polynomial(&calibration.voltage_main, main_voltage),
+                calibration.voltage_clamp,
+            ),
+            amplifier: clamp_value(
+                evaluate_polynomial(&calibration.voltage_amp, amp_voltage),
+                calibration.voltage_clamp,
+            ),
             usb: evaluate_polynomial(&calibration.voltage_usb, usb_voltage),
             location: location.clone(),
         }
