@@ -5,9 +5,9 @@ use tokio_serial::SerialPortBuilderExt;
 use tokio_util::codec::Decoder;
 
 mod config;
+mod cpu_stats;
 mod sensor_board;
 mod serial_reader;
-mod cpu_stats;
 
 #[tokio::main]
 async fn main() -> tokio_serial::Result<()> {
@@ -51,9 +51,8 @@ async fn main() -> tokio_serial::Result<()> {
             &config_data.calibration,
         );
 
-        // Get the readings from vcgencmd.
-        let cpu_readings =
-            cpu_stats::get_cpu_stats(config_data.influxdb.site_name.clone());
+        // Get CPU stats.
+        let cpu_readings = cpu_stats::get_cpu_stats(config_data.influxdb.site_name.clone());
 
         // Combine the two Vec.
         let sensor_readings = [sensor_readings, cpu_readings].concat();
