@@ -43,7 +43,7 @@ async fn main() -> tokio_serial::Result<()> {
 
     while let Some(line_result) = reader.next().await {
         let line = line_result.expect("Failed to read line");
-        log::debug!("Received data from sensorboard: {:?}", line);
+        log::info!("Received data from sensorboard: {:?}", line);
 
         let sensor_readings = sensor_board::splice_sensor_readings(
             config_data.influxdb.site_name.clone(),
