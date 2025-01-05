@@ -5,9 +5,6 @@
 	# interface. If admin over TCP is turned on one should make sure
 	# implications are well understood.
 	#        admin "unix//run/caddy/admin.socket"
-
-	email "kg5key@kg5key.com"
-	auto_https disable_redirects
 }
 
 # Import additional caddy config files in /etc/caddy/conf.d/
