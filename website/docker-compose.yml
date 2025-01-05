@@ -11,19 +11,20 @@ services:
     cap_add:
       - NET_ADMIN
     volumes:
-      - $PWD/config/caddy:/etc/caddy
-      - $PWD/storage/caddy/:/data
+      - ./config/caddy:/etc/caddy
+      - ./storage/caddy/:/data
   grafana:
     image: grafana/grafana-enterprise
     restart: always
     volumes:
-      - $PWD/storage/grafana:/var/lib/grafana
-      #- $PWD/grafana.ini:/etc/grafana/grafana.ini
+      - ./storage/grafana:/var/lib/grafana
+      - ./config/grafana/grafana.ini:/etc/grafana/grafana.ini
+    user: "1000"
   influxdb:
-    image: influxdb:2.6-alpine
+    image: influxdb:2-alpine
     restart: always
     volumes:
-      - $PWD/storage/influxdb:/var/lib/influxdb2:rw
+      - ./storage/influxdb:/var/lib/influxdb2:rw
   watchtower:
     image: containrrr/watchtower
     environment:
@@ -31,4 +32,4 @@ services:
       - WATCHTOWER_ROLLING_RESTART=true
     restart: always
     volumes:
-      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
