@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use influxdb::{InfluxDbWriteable, WriteQuery};
-use std::fs;
+use std::process::Command;
 
 #[derive(InfluxDbWriteable)]
 struct CPUTemp {
@@ -18,27 +18,39 @@ pub(crate) fn get_cpu_stats(location: String) -> Vec<WriteQuery> {
     let time = Utc::now();
     let mut influx_query: Vec<WriteQuery> = vec![];
 
-    // Read the temperature from the system file
-    match fs::read_to_string("/sys/class/thermal/thermal_zone0/temp") {
-        Ok(temp_str) => {
-            if let Ok(temp_raw) = temp_str.trim().parse::<f64>() {
-                // Convert temperature from millidegrees Celsius to Celsius
-                let temp_c = temp_raw / 1000.0;
-                influx_query.push(
-                    CPUTemp {
-                        time,
-                        temperature_c: temp_c,
-                        location,
-                    }
-                    .into_query("pi_status"),
-                );
-            } else {
-                log::error!("Failed to parse temperature value.");
-            }
+    let output = Command::new("/opt/vc/bin/vcgencmd")
+        .arg("measure_temp")
+        .output();
+
+    let output_str = match output {
+        Ok(output) if output.status.success() => String::from_utf8_lossy(&output.stdout).trim().to_string(),
+        Ok(output) => {
+            log::error!("Command failed with status: {:?}", output.status.code());
+            return influx_query;
         }
         Err(err) => {
-            log::error!("Failed to read CPU temperature: {}", err);
+            log::error!("Failed to execute vcgencmd command: {}", err);
+            return influx_query;
         }
+    };
+
+    let temp_c = output_str
+        .strip_prefix("temp=")
+        .and_then(|s| s.strip_suffix("'C"))
+        .and_then(|temp| temp.parse::<f64>().ok());
+
+    match temp_c {
+        Some(temp) => {
+            influx_query.push(
+                CPUTemp {
+                    time,
+                    temperature_c: temp,
+                    location,
+                }
+                .into_query("pi_status"),
+            );
+        }
+        None => log::error!("Unexpected output format: {}", output_str),
     }
 
     influx_query
