@@ -138,9 +138,15 @@ pub fn splice_sensor_readings(
     influx_query.push(
         RFPower {
             time,
-            forward: evaluate_polynomial(&calibration.power_forward, forward),
-            reverse: evaluate_polynomial(&calibration.power_reverse, reverse),
-            swr: calculate_swr(forward, reverse),
+            forward: clamp_value(
+                evaluate_polynomial(&calibration.power_forward, forward),
+                calibration.power_forward_clamp,
+            ),
+            reverse: clamp_value(
+                evaluate_polynomial(&calibration.power_reverse, reverse),
+                calibration.power_reverse_clamp,
+            ),
+            swr: clamp_value(calculate_swr(forward, reverse), 0.0),
             location,
         }
         .into_query("rf_power"),
