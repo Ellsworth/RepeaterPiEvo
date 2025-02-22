@@ -28,9 +28,13 @@ config_dict = {
     "calibration": {
         "voltage_main": np.polyfit(df_voltage["Main"], df_voltage["Ground Truth"], 5).tolist()[::-1],
         "voltage_amp": np.polyfit(df_voltage["Amplifier"], df_voltage["Ground Truth"], 5).tolist()[::-1],
-        "power_forward": np.polyfit(df_power_forward["Counts (ADC)"], df_power_forward["Ground Truth (W)"], 5).tolist()[::-1],
-        "power_reverse": np.polyfit(df_power_reverse["Counts (ADC)"], df_power_reverse["Ground Truth (W)"], 5).tolist()[::-1],
-        "voltage_usb":  [0.0, 0.01788856304985337243401759530791]
+        "voltage_clamp": 1.0,
+        "voltage_usb":  [0.0, 0.01788856304985337243401759530791],
+        "power_forward": np.polyfit(df_power_forward["Counts (ADC)"], df_power_forward["Ground Truth (W)"], 1).tolist()[::-1],
+        "power_forward_clamp": 0.1,
+        "power_reverse": np.polyfit(df_power_reverse["Counts (ADC)"], df_power_reverse["Ground Truth (W)"], 1).tolist()[::-1],
+        "power_reverse_clamp": 0.1,
+
     }
 }
 
