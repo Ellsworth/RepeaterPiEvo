@@ -26,7 +26,7 @@ pub struct Calibration {
     pub power_forward: Vec<f64>,
     pub power_forward_clamp: f64,
     pub power_reverse: Vec<f64>,
-    pub power_reverse_clamp: f64
+    pub power_reverse_clamp: f64,
 }
 
 #[derive(Debug, Deserialize, Clone)]

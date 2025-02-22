@@ -47,7 +47,9 @@ pub fn calculate_swr(forward_power: f64, reverse_power: f64) -> f64 {
         / (1f64 - (reverse_power / forward_power).sqrt());
 
     if (reverse_power > forward_power) | swr.is_sign_negative() {
-        log::warn!("Calculated SWR is negative due to the reflected power being greater than the forward power. This should not be possible under normal operation.");
+        log::warn!(
+            "Calculated SWR is negative due to the reflected power being greater than the forward power. This should not be possible under normal operation."
+        );
     }
 
     swr
@@ -68,11 +70,7 @@ fn evaluate_polynomial(coefficients: &[f64], x: f64) -> f64 {
 }
 
 fn clamp_value(input: f64, limit: f64) -> f64 {
-    if input < limit {
-        0.0
-    } else {
-        input
-    }
+    if input < limit { 0.0 } else { input }
 }
 
 pub fn splice_sensor_readings(

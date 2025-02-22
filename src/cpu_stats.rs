@@ -23,7 +23,9 @@ pub(crate) fn get_cpu_stats(location: String) -> Vec<WriteQuery> {
         .output();
 
     let output_str = match output {
-        Ok(output) if output.status.success() => String::from_utf8_lossy(&output.stdout).trim().to_string(),
+        Ok(output) if output.status.success() => {
+            String::from_utf8_lossy(&output.stdout).trim().to_string()
+        }
         Ok(output) => {
             log::error!("Command failed with status: {:?}", output.status.code());
             return influx_query;
