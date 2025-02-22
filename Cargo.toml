@@ -2,7 +2,7 @@
 name = "repeaterpi_evo"
 authors = ["Erich Ellsworth, KG5KEY <erich@kg5key.com>"]
 license = "GPL-2.0-or-later"
-version = "3.0.2"
+version = "3.0.3"
 edition = "2024"
 publish = false
 
