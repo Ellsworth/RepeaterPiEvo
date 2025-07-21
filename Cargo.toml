@@ -5,7 +5,7 @@ license = "GPL-2.0-or-later"
 version = "3.0.3"
 edition = "2024"
 publish = false
-license-file = "LICENSE.md"
+license-file = "LICENSE"
 
 [package.metadata.licenses]
 "tokio-serial" = { license = "MIT", source = "https://github.com/berkowski/tokio-serial", file = "examples/serial_println.rs" }
