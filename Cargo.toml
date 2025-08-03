@@ -19,7 +19,7 @@ tokio = {version = "1.31.0", features = ["full"] }
 env_logger = "0.11.5"
 log = "0.4.20"
 config = { version = "0.15.4", features = ["ini"] }
-toml = "0.8.8"
+toml = "0.9.4"
 serde = { version = "1.0", features = ["derive"] }
 tokio-serial =  { version = "5.4.4", features = ["bytes", "tokio-util"] }
 bytes = "1.7.2"
