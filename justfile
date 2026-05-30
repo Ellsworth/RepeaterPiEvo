@@ -1,11 +1,13 @@
-# Define a default recipe
 default:
     @just pi3
 
-# Build the project for the arm-unknown-linux-gnueabihf target in release mode
+# Pi 3 builds, targets 32-bit armv7hf
 pi3:
     cargo build --release --target=arm-unknown-linux-gnueabihf
 
-# Run clippy on the codebase
-clippy:
+check:
     cargo clippy --all-targets -- -D warnings
+    cargo fmt --all -- --check
+
+fmt:
+    cargo fmt --all

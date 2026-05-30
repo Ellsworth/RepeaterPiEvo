@@ -21,7 +21,7 @@
         # Customized Rust toolchain with cross-compilation target added
         rustToolchain = pkgs.rust-bin.stable.latest.default.override {
           targets = [ "arm-unknown-linux-gnueabihf" ];
-          extensions = [ "clippy" ];
+          extensions = [ "clippy" "rustfmt" ];
         };
 
         # ARMv7 hard float cross GCC from Nixpkgs
