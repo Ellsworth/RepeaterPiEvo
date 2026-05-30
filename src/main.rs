@@ -63,13 +63,13 @@ async fn main() -> tokio_serial::Result<()> {
 
         match client.query(sensor_readings).await {
             Ok(_) => {
-                log::info!(
-                    "Successfully uploaded {measurement_count} measurements to InfluxDB."
-                );
+                log::info!("Successfully uploaded {measurement_count} measurements to InfluxDB.");
             }
             Err(error) => {
                 log::error!("InfluxDB: {error:}");
-                log::info!("Re-creating InfluxDB client to refresh connection pool and DNS cache...");
+                log::info!(
+                    "Re-creating InfluxDB client to refresh connection pool and DNS cache..."
+                );
                 client = influxdb::Client::new(
                     config_data.influxdb.endpoint.clone(),
                     config_data.influxdb.database_name.clone(),
