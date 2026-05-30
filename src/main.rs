@@ -27,23 +27,23 @@ async fn main() -> tokio_serial::Result<()> {
 
     let config_data = config::load("config.toml".to_string());
 
-    let client = influxdb::Client::new(
-        config_data.influxdb.endpoint,
-        config_data.influxdb.database_name,
+    let mut client = influxdb::Client::new(
+        config_data.influxdb.endpoint.clone(),
+        config_data.influxdb.database_name.clone(),
     )
-    .with_token(config_data.influxdb.token);
+    .with_token(config_data.influxdb.token.clone());
 
-    let tty_path = config_data.serial.port;
+    let tty_path = config_data.serial.port.clone();
     let baud = config_data.serial.baud;
 
-    log::info!("Opening serial port '{}' at {} baud.", tty_path, baud);
+    log::info!("Opening serial port '{tty_path}' at {baud} baud.");
 
     let port = tokio_serial::new(tty_path, baud).open_native_async()?;
     let mut reader = serial_reader::LineCodec.framed(port);
 
     while let Some(line_result) = reader.next().await {
         let line = line_result.expect("Failed to read line");
-        log::info!("Received data from sensorboard: {:?}", line);
+        log::info!("Received data from sensorboard: {line:?}");
 
         let sensor_readings = sensor_board::splice_sensor_readings(
             config_data.influxdb.site_name.clone(),
@@ -57,19 +57,26 @@ async fn main() -> tokio_serial::Result<()> {
         // Combine the two Vec.
         let sensor_readings = [sensor_readings, cpu_readings].concat();
 
-        log::debug!("{:?}", sensor_readings);
+        log::debug!("{sensor_readings:?}");
 
         let measurement_count = sensor_readings.len();
 
         match client.query(sensor_readings).await {
             Ok(_) => {
                 log::info!(
-                    "Successfully uploaded {} measurements to InfluxDB.",
-                    measurement_count
+                    "Successfully uploaded {measurement_count} measurements to InfluxDB."
                 );
             }
-            Err(error) => log::error!("InfluxDB: {:}", error),
-        };
+            Err(error) => {
+                log::error!("InfluxDB: {error:}");
+                log::info!("Re-creating InfluxDB client to refresh connection pool and DNS cache...");
+                client = influxdb::Client::new(
+                    config_data.influxdb.endpoint.clone(),
+                    config_data.influxdb.database_name.clone(),
+                )
+                .with_token(config_data.influxdb.token.clone());
+            }
+        }
     }
     Ok(())
 }
