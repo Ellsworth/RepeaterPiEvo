@@ -31,7 +31,7 @@ pub(crate) fn get_cpu_stats(location: String) -> Vec<WriteQuery> {
             return influx_query;
         }
         Err(err) => {
-            log::error!("Failed to execute vcgencmd command: {}", err);
+            log::error!("Failed to execute vcgencmd command: {err}");
             return influx_query;
         }
     };
@@ -52,7 +52,7 @@ pub(crate) fn get_cpu_stats(location: String) -> Vec<WriteQuery> {
                 .into_query("pi_status"),
             );
         }
-        None => log::error!("Unexpected output format: {}", output_str),
+        None => log::error!("Unexpected output format: {output_str}"),
     }
 
     influx_query

@@ -37,7 +37,7 @@ impl Decoder for LineCodec {
             let line = src.split_to(n + 1);
             return match str::from_utf8(line.as_ref()) {
                 Ok(s) => Ok(Some(s.to_string())),
-                Err(_) => Err(io::Error::new(io::ErrorKind::Other, "Invalid String")),
+                Err(_) => Err(io::Error::other("Invalid String")),
             };
         }
         Ok(None)
