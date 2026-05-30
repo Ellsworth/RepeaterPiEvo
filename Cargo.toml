@@ -12,6 +12,8 @@ license-file = "LICENSE.md"
 
 [profile.release]
 overflow-checks = true
+codegen-units = 1
+lto = true
 
 [dependencies]
 influxdb = { version = "0.7.2", features = ["derive"] }
