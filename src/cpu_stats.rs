@@ -49,7 +49,8 @@ pub(crate) fn get_cpu_stats(location: String) -> Vec<WriteQuery> {
                     temperature_c: temp,
                     location,
                 }
-                .into_query("pi_status"),
+                .try_into_query("pi_status")
+                .unwrap(),
             );
         }
         None => log::error!("Unexpected output format: {output_str}"),

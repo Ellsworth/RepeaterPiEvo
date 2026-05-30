@@ -97,7 +97,8 @@ pub fn splice_sensor_readings(
             pressure: values[1].parse().unwrap(),
             location: location.clone(),
         }
-        .into_query("bmp280"),
+        .try_into_query("bmp280")
+        .unwrap(),
     );
 
     influx_query.push(
@@ -106,7 +107,8 @@ pub fn splice_sensor_readings(
             temperature_f: values[2].parse().unwrap(),
             location: location.clone(),
         }
-        .into_query("tmp36"),
+        .try_into_query("tmp36")
+        .unwrap(),
     );
 
     let main_voltage: f64 = values[3].parse().unwrap();
@@ -127,7 +129,8 @@ pub fn splice_sensor_readings(
             usb: evaluate_polynomial(&calibration.voltage_usb, usb_voltage),
             location: location.clone(),
         }
-        .into_query("voltage"),
+        .try_into_query("voltage")
+        .unwrap(),
     );
 
     let forward: f64 = values[6].parse().unwrap();
@@ -147,7 +150,8 @@ pub fn splice_sensor_readings(
             swr: clamp_value(calculate_swr(forward, reverse), 0.0),
             location,
         }
-        .into_query("rf_power"),
+        .try_into_query("rf_power")
+        .unwrap(),
     );
 
     influx_query
