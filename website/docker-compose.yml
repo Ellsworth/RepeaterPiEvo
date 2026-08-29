@@ -6,7 +6,7 @@ services:
     environment:
       - "TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}"
   caddy:
-    image: caddy:2
+    image: docker.io/library/caddy:2
     restart: always
     cap_add:
       - NET_ADMIN
@@ -14,22 +14,14 @@ services:
       - ./config/caddy:/etc/caddy
       - ./storage/caddy/:/data
   grafana:
-    image: grafana/grafana-enterprise
+    image: docker.io/grafana/grafana-enterprise:latest
     restart: always
     volumes:
       - ./storage/grafana:/var/lib/grafana
       - ./config/grafana/grafana.ini:/etc/grafana/grafana.ini
     user: "1000"
   influxdb:
-    image: influxdb:2-alpine
+    image: docker.io/library/influxdb:2-alpine
     restart: always
     volumes:
       - ./storage/influxdb:/var/lib/influxdb2:rw
-  watchtower:
-    image: containrrr/watchtower
-    environment:
-      - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_ROLLING_RESTART=true
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
