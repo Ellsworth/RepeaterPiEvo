@@ -472,8 +472,10 @@ mod tests {
 
     #[test]
     fn test_heartbeat_timeout() {
-        let mut config = ChangeDetectorConfig::default();
-        config.heartbeat_interval_secs = Some(60); // 1 minute heartbeat
+        let config = ChangeDetectorConfig {
+            heartbeat_interval_secs: Some(60),
+            ..Default::default()
+        };
         let mut detector = TelemetryChangeDetector::new(config);
 
         let t0 = Utc::now();
@@ -496,8 +498,10 @@ mod tests {
 
     #[test]
     fn test_rate_limiting_debounce() {
-        let mut config = ChangeDetectorConfig::default();
-        config.min_interval_secs = Some(5); // 5s debounce
+        let config = ChangeDetectorConfig {
+            min_interval_secs: Some(5),
+            ..Default::default()
+        };
         let mut detector = TelemetryChangeDetector::new(config);
 
         let t0 = Utc::now();
@@ -542,8 +546,10 @@ mod tests {
 
     #[test]
     fn test_disabled_change_detector() {
-        let mut config = ChangeDetectorConfig::default();
-        config.enabled = false;
+        let config = ChangeDetectorConfig {
+            enabled: false,
+            ..Default::default()
+        };
         let mut detector = TelemetryChangeDetector::new(config);
 
         let t0 = Utc::now();
@@ -587,9 +593,9 @@ mod tests {
         "#;
         let config: ChangeDetectorConfig = toml::from_str(toml_str).unwrap();
         assert!(config.enabled);
-        assert_eq!(config.tx_power_threshold, 1.0);
+        assert!((config.tx_power_threshold - 1.0).abs() < f64::EPSILON);
         assert_eq!(config.heartbeat_interval_secs, Some(600));
-        assert_eq!(config.default_threshold, 0.25);
+        assert!((config.default_threshold - 0.25).abs() < f64::EPSILON);
         assert_eq!(config.thresholds.get("voltage_main"), Some(&0.05));
         assert_eq!(config.ignored_metrics, vec!["rf_power_swr", "dummy"]);
     }
