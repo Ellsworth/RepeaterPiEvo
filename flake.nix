@@ -34,11 +34,17 @@
             pkgs.just
             pkgs.gcc-arm-embedded
             crossCC
+            pkgs.arduino-cli
+            pkgs.python3
+            pkgs.udev
           ];
 
           # Environment variables for Cargo to use the correct linker
           CARGO_TARGET_ARM_UNKNOWN_LINUX_GNUEABIHF_LINKER = "armv7l-unknown-linux-gnueabihf-cc";
           CC_arm_unknown_linux_gnueabihf = "armv7l-unknown-linux-gnueabihf-cc";
+
+          # picotool (used by the rp2040 Arduino core's post-build step) needs libudev at runtime
+          LD_LIBRARY_PATH = "${pkgs.udev}/lib";
         };
       }
     );

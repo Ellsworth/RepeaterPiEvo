@@ -24,3 +24,9 @@ Cargo.lock
 
 # Ignore the config file for RepeaterPiEvo.
 config.toml
+
+# Python venv & bytecode caches
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
