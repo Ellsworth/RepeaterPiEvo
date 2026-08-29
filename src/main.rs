@@ -4,6 +4,7 @@ use futures::StreamExt;
 use tokio_serial::SerialPortBuilderExt;
 use tokio_util::codec::Decoder;
 
+mod change_detector;
 mod config;
 mod cpu_stats;
 mod sensor_board;
@@ -33,6 +34,9 @@ async fn main() -> tokio_serial::Result<()> {
     )
     .with_token(config_data.influxdb.token.clone());
 
+    let mut change_detector =
+        change_detector::TelemetryChangeDetector::new(config_data.change_detector.clone());
+
     let tty_path = config_data.serial.port.clone();
     let baud = config_data.serial.baud;
 
@@ -45,21 +49,32 @@ async fn main() -> tokio_serial::Result<()> {
         let line = line_result.expect("Failed to read line");
         log::info!("Received data from sensorboard: {line:?}");
 
-        let sensor_readings = sensor_board::splice_sensor_readings(
-            config_data.influxdb.site_name.clone(),
-            &line,
-            &config_data.calibration,
-        );
+        let cpu_temp_c = cpu_stats::get_cpu_temperature_c();
+        let sample =
+            match sensor_board::parse_to_sample(&line, &config_data.calibration, cpu_temp_c) {
+                Ok(s) => s,
+                Err(e) => {
+                    log::error!("Failed to parse sensorboard data: {e}");
+                    continue;
+                }
+            };
 
-        // Get CPU stats.
-        let cpu_readings = cpu_stats::get_cpu_stats(config_data.influxdb.site_name.clone());
+        let evaluation = change_detector.evaluate_sample(&sample);
+        if !evaluation.should_send {
+            log::debug!("Telemetry suppressed ({})", evaluation.reason);
+            continue;
+        }
 
-        // Combine the two Vec.
-        let sensor_readings = [sensor_readings, cpu_readings].concat();
+        let sensor_readings =
+            sensor_board::sample_to_write_queries(&sample, &config_data.influxdb.site_name);
 
         log::debug!("{sensor_readings:?}");
 
         let measurement_count = sensor_readings.len();
+        log::info!(
+            "Telemetry change detected ({}): uploading {measurement_count} measurements to InfluxDB.",
+            evaluation.reason
+        );
 
         match client.query(sensor_readings).await {
             Ok(_) => {

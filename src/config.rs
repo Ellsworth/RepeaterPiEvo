@@ -7,6 +7,8 @@ pub struct Root {
     pub influxdb: InfluxDB,
     pub calibration: Calibration,
     pub serial: Serial,
+    #[serde(default)]
+    pub change_detector: crate::change_detector::ChangeDetectorConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
