@@ -77,11 +77,11 @@ config_dict = {
         "voltage_clamp": 1.0,
         "power_forward_clamp": 0.1,
         "power_reverse_clamp": 0.1,
-        "pchip_voltage_main": fit_pchip_channel(df_voltage["Main"], df_voltage["Ground Truth"]),
-        "pchip_voltage_amp": fit_pchip_channel(df_voltage["Amplifier"], df_voltage["Ground Truth"]),
-        "pchip_voltage_usb": fit_pchip_channel([0.0, usb_max_counts], [0.0, 5.0]),
-        "pchip_power_forward": fit_pchip_channel(df_power_forward["Raw (Counts)"], df_power_forward["Ground Truth (W)"]),
-        "pchip_power_reverse": fit_pchip_channel(df_power_reverse["Raw (Counts)"], df_power_reverse["Ground Truth (W)"]),
+        "voltage_main": fit_pchip_channel(df_voltage["Main"], df_voltage["Ground Truth"]),
+        "voltage_amp": fit_pchip_channel(df_voltage["Amplifier"], df_voltage["Ground Truth"]),
+        "voltage_usb": fit_pchip_channel([0.0, usb_max_counts], [0.0, 5.0]),
+        "power_forward": fit_pchip_channel(df_power_forward["Raw (Counts)"], df_power_forward["Ground Truth (W)"]),
+        "power_reverse": fit_pchip_channel(df_power_reverse["Raw (Counts)"], df_power_reverse["Ground Truth (W)"]),
     },
 }
 
