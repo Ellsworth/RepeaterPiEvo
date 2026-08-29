@@ -1,0 +1,19 @@
+* Qucs 25.2.0  /home/erich/Software/RepeaterPiEvo/sensorboard/divider.sch
+.INCLUDE "/nix/store/0y7vxpn9qm2da4c1cmfx43lmk3mi5ii2-qucs-s-25.2.0/share/qucs-s/xspice_cmlib/include/ngspice_mathfunc.inc"
+D1 _net1 _net0 DMOD_D1 AREA=1.0 Temp=26.85
+.MODEL DMOD_D1 D (Is=32.1N N=1.04 Cj0=2.2P M=0.31 Vj=0.35 Fc=0.5 Rs=1.85 Tt=5N Kf=0.0 Af=1.0 Bv=10 Ibv=200N Xti=2 Eg=0.69 Tcv=0.0 Trs=0.0 Ttt1=0.0 Ttt2=0.0 Tm1=0.0 Tm2=0.0 Tnom=26.85 )
+R1 _net0 _net2  1K tc1=0.0 tc2=0.0 
+R2 _net1 _net0  1K tc1=0.0 tc2=0.0 
+C1 _net1 _net0  1N 
+V1 _net2 0 DC 1
+
+.control
+
+op
+print   > spice4qucs.dc1.ngspice.dc.print
+destroy all
+reset
+
+exit
+.endc
+.END
