@@ -20,7 +20,11 @@
 
         # Customized Rust toolchain with cross-compilation target added
         rustToolchain = pkgs.rust-bin.stable.latest.default.override {
-          targets = [ "arm-unknown-linux-gnueabihf" ];
+          targets = [
+            "arm-unknown-linux-gnueabihf"
+            "arm-unknown-linux-musleabihf"
+            "armv7-unknown-linux-musleabihf"
+          ];
           extensions = [ "clippy" "rustfmt" ];
         };
 
@@ -34,6 +38,8 @@
             pkgs.just
             pkgs.gcc-arm-embedded
             crossCC
+            pkgs.cargo-zigbuild
+            pkgs.zig
             pkgs.arduino-cli
             pkgs.python3
             pkgs.udev
