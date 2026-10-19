@@ -392,8 +392,14 @@ mod tests {
         let p_fwd = sample.rf_power_forward.unwrap();
         let p_rev = sample.rf_power_reverse.unwrap();
 
-        assert!((v_main - 13.797).abs() < 1e-3, "Expected ~13.797V, got {v_main}");
-        assert!((v_amp - 13.797).abs() < 1e-3, "Expected ~13.797V, got {v_amp}");
+        assert!(
+            (v_main - 13.797).abs() < 1e-3,
+            "Expected ~13.797V, got {v_main}"
+        );
+        assert!(
+            (v_amp - 13.797).abs() < 1e-3,
+            "Expected ~13.797V, got {v_amp}"
+        );
         assert!((v_usb - 5.0).abs() < 1e-3, "Expected ~5.0V, got {v_usb}");
         assert!((p_fwd - 29.5).abs() < 1e-3, "Expected ~29.5W, got {p_fwd}");
         assert!((p_rev - 0.5).abs() < 1e-3, "Expected ~0.5W, got {p_rev}");

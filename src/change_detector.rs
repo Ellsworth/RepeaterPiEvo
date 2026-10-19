@@ -209,20 +209,14 @@ impl TelemetryChangeDetector {
     }
 
     /// Accesses the last sent sample, if any.
-    #[allow(
-        dead_code,
-        reason = "Part of state inspection API and used in testing"
-    )]
+    #[allow(dead_code, reason = "Part of state inspection API and used in testing")]
     #[must_use]
     pub fn last_sent_sample(&self) -> Option<&TelemetrySample> {
         self.last_sent_sample.as_ref()
     }
 
     /// Accesses the timestamp of the last sent sample, if any.
-    #[allow(
-        dead_code,
-        reason = "Part of state inspection API and used in testing"
-    )]
+    #[allow(dead_code, reason = "Part of state inspection API and used in testing")]
     #[must_use]
     pub fn last_sent_time(&self) -> Option<DateTime<Utc>> {
         self.last_sent_time
@@ -405,7 +399,10 @@ mod tests {
 
         let eval = detector.evaluate_sample(&s1);
         assert!(eval.should_send);
-        assert!(eval.reason.starts_with("transmitting (rf_power_forward=25.4W)"));
+        assert!(
+            eval.reason
+                .starts_with("transmitting (rf_power_forward=25.4W)")
+        );
         assert_eq!(detector.last_sent_time(), Some(t1));
 
         // Subsequent sample during transmission also sends
