@@ -10,6 +10,54 @@ mod cpu_stats;
 mod sensor_board;
 mod serial_reader;
 
+async fn log_endpoint_resolution(endpoint: &str) {
+    if let Ok(url) = url::Url::parse(endpoint)
+        && let Some(host) = url.host_str()
+    {
+        let port = url.port_or_known_default().unwrap_or(443);
+        let addr_str = format!("{host}:{port}");
+        match tokio::net::lookup_host(&addr_str).await {
+            Ok(addrs) => {
+                let ips: Vec<_> = addrs.collect();
+                log::info!("System DNS resolution for '{host}': {ips:?}");
+            }
+            Err(e) => {
+                log::warn!("System DNS resolution failed for '{host}': {e}");
+            }
+        }
+    }
+}
+
+fn create_influx_client(influx_config: &config::InfluxDB) -> influxdb::Client {
+    let mut builder = reqwest::Client::builder();
+
+    if !influx_config.resolve_ips.is_empty()
+        && let Ok(url) = url::Url::parse(&influx_config.endpoint)
+        && let Some(host) = url.host_str()
+    {
+        let port = url.port_or_known_default().unwrap_or(443);
+        let socket_addrs: Vec<std::net::SocketAddr> = influx_config
+            .resolve_ips
+            .iter()
+            .map(|ip| std::net::SocketAddr::new(*ip, port))
+            .collect();
+
+        log::info!("Overriding DNS for InfluxDB host '{host}' with static IPs: {socket_addrs:?}");
+        builder = builder.resolve_to_addrs(host, &socket_addrs);
+    }
+
+    let http_client = builder
+        .build()
+        .expect("Failed to create reqwest HTTP client");
+
+    influxdb::Client::new(
+        influx_config.endpoint.clone(),
+        influx_config.database_name.clone(),
+    )
+    .with_token(influx_config.token.clone())
+    .with_http_client(http_client)
+}
+
 #[tokio::main]
 async fn main() -> tokio_serial::Result<()> {
     env_logger::init();
@@ -28,11 +76,8 @@ async fn main() -> tokio_serial::Result<()> {
 
     let config_data = config::load("config.toml".to_string());
 
-    let mut client = influxdb::Client::new(
-        config_data.influxdb.endpoint.clone(),
-        config_data.influxdb.database_name.clone(),
-    )
-    .with_token(config_data.influxdb.token.clone());
+    let client = create_influx_client(&config_data.influxdb);
+    log_endpoint_resolution(&config_data.influxdb.endpoint).await;
 
     let mut change_detector =
         change_detector::TelemetryChangeDetector::new(config_data.change_detector.clone());
@@ -82,14 +127,7 @@ async fn main() -> tokio_serial::Result<()> {
             }
             Err(error) => {
                 log::error!("InfluxDB: {error:}");
-                log::info!(
-                    "Re-creating InfluxDB client to refresh connection pool and DNS cache..."
-                );
-                client = influxdb::Client::new(
-                    config_data.influxdb.endpoint.clone(),
-                    config_data.influxdb.database_name.clone(),
-                )
-                .with_token(config_data.influxdb.token.clone());
+                log_endpoint_resolution(&config_data.influxdb.endpoint).await;
             }
         }
     }

@@ -17,6 +17,8 @@ pub struct InfluxDB {
     pub database_name: String,
     pub token: String,
     pub site_name: String,
+    #[serde(default)]
+    pub resolve_ips: Vec<std::net::IpAddr>,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq)]
