@@ -1,13 +1,26 @@
+run := "nix develop --command"
+
 default:
-    @just pi3
+    @just --list
 
 # Pi 3 builds, statically linked 32-bit armv7 musl
 pi3:
-    cargo zigbuild --release --target=armv7-unknown-linux-musleabihf
+    @just check
+    {{run}} cargo zigbuild --release --target=armv7-unknown-linux-musleabihf
+
+# Host build for local development
+build:
+    @just check
+    {{run}} cargo build --release
 
 check:
-    cargo clippy --all-targets -- -D warnings
-    cargo fmt --all -- --check
+    {{run}} cargo clippy --all-targets -- -D warnings
+    {{run}} cargo fmt --all -- --check
 
 fmt:
-    cargo fmt --all
+    {{run}} cargo fmt --all
+
+# Interactive Nix development shell
+shell:
+    nix develop
+
